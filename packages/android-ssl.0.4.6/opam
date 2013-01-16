@@ -1,8 +1,8 @@
 opam-version: "1"
-maintainer: "contact@ocamlpro.com"
+maintainer: "jerome.vouillon@pps.univ-paris-diderot.fr"
 build: [
   ["./configure" "OCAMLFIND=%{bin}%/ocamlfind -toolchain android"]
-  ["sh" "-c" "%{make}% PATH=%{prefix}%/arm-linux-androideabi/bin/:$PATH LIBDIRS=%{prefix}%/arm-linux-androideabi/lib CC='%{lib}%/android-ndk-linux/toolchains/arm-linux-androideabi-4.7/prebuilt/linux-x86/bin/arm-linux-androideabi-gcc --sysroot %{lib}%/android-ndk-linux/platforms/android-14/arch-arm -I%{prefix}%/arm-linux-androideabi/include'"]
+  ["sh" "-c" "%{make}% PATH=%{prefix}%/bin/arm-linux-androideabi:$PATH LIBDIRS=%{prefix}%/arm-linux-androideabi/lib CC='%{lib}%/android-ndk-linux/toolchains/arm-linux-androideabi-4.7/prebuilt/linux-x86/bin/arm-linux-androideabi-gcc --sysroot %{lib}%/android-ndk-linux/platforms/android-14/arch-arm -I%{prefix}%/arm-linux-androideabi/include'"]
   ["%{make}%" "install"]
 ]
 remove: [
