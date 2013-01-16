@@ -1,0 +1,6 @@
+path(android)="%{prefix}%/arm-linux-androideabi/lib"
+destdir(android)="%{prefix}%/arm-linux-androideabi/lib"
+stdlib(android)="%{prefix}%/arm-linux-androideabi/lib/ocaml"
+ocamlc(android)="arm-linux-androideabi-ocamlc"
+ocamlopt(android)="arm-linux-androideabi-ocamlopt"
+ocamlmklib(android)="arm-linux-androideabi-ocamlmklib"

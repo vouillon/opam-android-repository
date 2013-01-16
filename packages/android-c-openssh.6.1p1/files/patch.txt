@@ -1,0 +1,114 @@
+--- config.h~	2013-01-16 12:15:45.741842685 +0100
++++ config.h	2013-01-16 12:59:05.873955262 +0100
+@@ -1082,7 +1082,7 @@
+ #define HAVE_SYS_TYPES_H 1
+ 
+ /* Define to 1 if you have the <sys/un.h> header file. */
+-/* #undef HAVE_SYS_UN_H */
++#define HAVE_SYS_UN_H 1
+ 
+ /* Define to 1 if you have the `tcgetpgrp' function. */
+ #define HAVE_TCGETPGRP 1
+@@ -1297,10 +1297,10 @@
+ /* #undef MAIL_DIRECTORY */
+ 
+ /* Define on *nto-qnx systems */
+-/* #undef MISSING_FD_MASK */
++#define MISSING_FD_MASK 1
+ 
+ /* Define on *nto-qnx systems */
+-/* #undef MISSING_HOWMANY */
++#define MISSING_HOWMANY 1
+ 
+ /* Define on *nto-qnx systems */
+ /* #undef MISSING_NFDBITS */
+--- openbsd-compat/Makefile~	2013-01-16 12:15:45.705843687 +0100
++++ openbsd-compat/Makefile	2013-01-16 12:57:43.940221063 +0100
+@@ -18,5 +18,5 @@
+ 
+-OPENBSD=base64.o basename.o bindresvport.o daemon.o dirname.o fmt_scaled.o getcwd.o getgrouplist.o getopt.o getrrsetbyname.o glob.o inet_aton.o inet_ntoa.o inet_ntop.o mktemp.o pwcache.o readpassphrase.o realpath.o rresvport.o setenv.o setproctitle.o sha2.o sigact.o strlcat.o strlcpy.o strmode.o strnlen.o strptime.o strsep.o strtonum.o strtoll.o strtoul.o timingsafe_bcmp.o vis.o
++OPENBSD=base64.o basename.o bindresvport.o daemon.o dirname.o fmt_scaled.o getcwd.o getgrouplist.o getopt.o glob.o inet_aton.o inet_ntoa.o inet_ntop.o mktemp.o pwcache.o readpassphrase.o realpath.o rresvport.o setenv.o setproctitle.o sha2.o sigact.o strlcat.o strlcpy.o strmode.o strnlen.o strptime.o strsep.o strtonum.o strtoll.o strtoul.o timingsafe_bcmp.o vis.o
+ 
+ COMPAT=bsd-arc4random.o bsd-asprintf.o bsd-closefrom.o bsd-cray.o bsd-cygwin_util.o bsd-getpeereid.o getrrsetbyname-ldns.o bsd-misc.o bsd-nextstep.o bsd-openpty.o bsd-poll.o bsd-snprintf.o bsd-statvfs.o bsd-waitpid.o fake-rfc2553.o openssl-compat.o xmmap.o xcrypt.o
+ 
+--- dns.c~	2012-06-20 13:51:11.000000000 +0200
++++ dns.c	2013-01-16 13:10:11.271690624 +0100
+@@ -194,6 +194,8 @@
+ verify_host_key_dns(const char *hostname, struct sockaddr *address,
+     Key *hostkey, int *flags)
+ {
++return -1;
++#if 0
+ 	u_int counter;
+ 	int result;
+ 	struct rrsetinfo *fingerprints = NULL;
+@@ -296,6 +298,7 @@
+ 		debug("no host key fingerprint found in DNS");
+ 
+ 	return 0;
++#endif
+ }
+ 
+ /*
+--- misc.c.orig	2011-09-22 13:34:36.000000000 +0200
++++ misc.c	2013-01-16 13:34:58.774782836 +0100
+@@ -203,10 +203,11 @@
+ pwcopy(struct passwd *pw)
+ {
+ 	struct passwd *copy = xcalloc(1, sizeof(*copy));
++        char * home;
+ 
+ 	copy->pw_name = xstrdup(pw->pw_name);
+-	copy->pw_passwd = xstrdup(pw->pw_passwd);
+-	copy->pw_gecos = xstrdup(pw->pw_gecos);
++	copy->pw_passwd = pw->pw_passwd?xstrdup(pw->pw_passwd):"*";
++        //	copy->pw_gecos = xstrdup(pw->pw_gecos);
+ 	copy->pw_uid = pw->pw_uid;
+ 	copy->pw_gid = pw->pw_gid;
+ #ifdef HAVE_PW_EXPIRE_IN_PASSWD
+@@ -218,7 +219,9 @@
+ #ifdef HAVE_PW_CLASS_IN_PASSWD
+ 	copy->pw_class = xstrdup(pw->pw_class);
+ #endif
+-	copy->pw_dir = xstrdup(pw->pw_dir);
++        home = getenv ("HOME");
++        home = home?home:pw->pw_dir;
++	copy->pw_dir = xstrdup(home);
+ 	copy->pw_shell = xstrdup(pw->pw_shell);
+ 	return copy;
+ }
+@@ -519,6 +522,7 @@
+ 	char user[128], ret[MAXPATHLEN];
+ 	struct passwd *pw;
+ 	u_int len, slash;
++        char * dir;
+ 
+ 	if (*filename != '~')
+ 		return (xstrdup(filename));
+@@ -533,15 +537,21 @@
+ 		user[slash] = '\0';
+ 		if ((pw = getpwnam(user)) == NULL)
+ 			fatal("tilde_expand_filename: No such user %s", user);
+-	} else if ((pw = getpwuid(uid)) == NULL)	/* ~/path */
+-		fatal("tilde_expand_filename: No such uid %ld", (long)uid);
++                dir = pw->pw_dir;
++	} else {
++		if ((pw = getpwuid(uid)) == NULL)	/* ~/path */
++			fatal("tilde_expand_filename: No such uid %ld",
++                              (long)uid);
++                dir = getenv ("HOME");
++                dir = dir?dir:pw->pw_dir;
++        }
+ 
+-	if (strlcpy(ret, pw->pw_dir, sizeof(ret)) >= sizeof(ret))
++	if (strlcpy(ret, dir, sizeof(ret)) >= sizeof(ret))
+ 		fatal("tilde_expand_filename: Path too long");
+ 
+ 	/* Make sure directory has a trailing '/' */
+-	len = strlen(pw->pw_dir);
+-	if ((len == 0 || pw->pw_dir[len - 1] != '/') &&
++	len = strlen(dir);
++	if ((len == 0 || dir[len - 1] != '/') &&
+ 	    strlcat(ret, "/", sizeof(ret)) >= sizeof(ret))
+ 		fatal("tilde_expand_filename: Path too long");
+ 

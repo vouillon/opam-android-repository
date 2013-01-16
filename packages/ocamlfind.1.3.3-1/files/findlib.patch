@@ -1,0 +1,14 @@
+diff -ur /tmp/findlib-1.3.3/src/findlib/fl_args.ml findlib-1.3.3/src/findlib/fl_args.ml
+--- /tmp/findlib-1.3.3/src/findlib/fl_args.ml	2012-07-09 11:29:16.000000000 +0200
++++ findlib-1.3.3/src/findlib/fl_args.ml	2013-01-12 12:33:14.124763890 +0100
+@@ -75,7 +75,9 @@
+           arg1 :: arg2 :: rewrite args_rest
+       | arg :: args_rest ->
+           ( try
+-              expand arg contracted_opts @ rewrite args_rest
++	      let arg' = expand arg contracted_opts in
++	      let args_rest' = rewrite args_rest in
++	      arg' @ args_rest'
+             with
+               | Not_found ->
+                   arg :: rewrite args_rest

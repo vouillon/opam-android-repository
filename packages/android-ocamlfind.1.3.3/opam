@@ -1,0 +1,6 @@
+opam-version: "1"
+maintainer: "jerome.vouillon@pps.univ-paris-diderot.fr"
+substs: ["android.conf" "ocamlfind"]
+build: [["./build.sh" "%{prefix}%"]]
+remove: [["./remove.sh" "%{prefix}%"]]
+depends: ["ocamlfind" "ocaml-android"]
