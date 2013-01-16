@@ -1,0 +1,12 @@
+opam-version: "1"
+maintainer: "jerome.vouillon@pps.univ-paris-diderot.fr"
+build: [
+  ["make" "UISTYLE=text"
+      "OCAMLOPT=arm-linux-androideabi-ocamlopt" "OSCOMP=android"]
+  ["cp" "unison" "%{prefix}%/arm-linux-androideabi/bin/"]
+]
+remove: [
+  ["rm" "%{prefix}%/arm-linux-androideabi/bin/unison"]
+]
+patches: ["unison.patch"]
+depends: ["ocaml-android"]

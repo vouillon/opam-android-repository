@@ -1,0 +1,24 @@
+--- pty.c~	2010-04-15 19:29:31.000000000 +0200
++++ pty.c	2013-01-16 19:28:56.258812188 +0100
+@@ -10,7 +10,7 @@
+ extern void uerror (char * cmdname, value arg) Noreturn;
+ 
+ // openpty
+-#if defined(__linux)
++#if defined(__linux) && !defined(__ANDROID__)
+ #include <pty.h>
+ #define HAS_OPENPTY 1
+ #endif
+--- Makefile.OCaml~	2013-01-16 19:27:10.686807807 +0100
++++ Makefile.OCaml	2013-01-16 19:29:46.814814286 +0100
+@@ -136,7 +136,9 @@
+     # openpty is in the libutil library
+     ifneq ($(OSARCH),solaris)
+       ifneq ($(OSARCH),osx)
+-        CLIBS+=-cclib -lutil
++        ifneq ($(OSCOMP),android)
++          CLIBS+=-cclib -lutil
++        endif
+       endif
+     endif
+     buildexecutable::
