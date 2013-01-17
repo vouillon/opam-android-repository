@@ -8,10 +8,13 @@ SYSROOT=$PREFIX/lib/android-ndk-linux/platforms/android-14/arch-arm
 INCLUDE=$PREFIX/arm-linux-androideabi/include
 CC="$TOOLCHAIN/${EXEC_PREFIX}gcc --sysroot $SYSROOT -I $INCLUDE"
 
-./configure OCAMLFIND="$PREFIX/bin/ocamlfind -toolchain android"
+CPPFLAGS="--sysroot $SYSROOT -I$PREFIX/arm-linux-androideabi/include"
+LDFLAGS=-L$PREFIX/arm-linux-androideabi/lib
+PATH="$PREFIX/bin/arm-linux-androideabi:$TOOLCHAIN:$PATH"
 
-make \
-  PATH="$PREFIX/arm-linux-androideabi/bin/:$PATH" \
-  LIBDIRS=$PREFIX/arm-linux-androideabi/lib"
-  CC=$CC
+export CPPFLAGS LDFLAGS PATH
+
+./configure --host arm-linux-androideabi OCAMLFIND="$PREFIX/bin/ocamlfind -toolchain android" LIBS=-lcrypto
+
+make
 make install
