@@ -1,0 +1,268 @@
+diff -rN -u old-lwt.dev/discover.ml new-lwt.dev/discover.ml
+--- old-lwt.dev/discover.ml	2013-01-17 14:32:51.671346552 +0100
++++ new-lwt.dev/discover.ml	2013-01-17 14:32:51.731344877 +0100
+@@ -231,6 +231,7 @@
+ let use_pthread = ref true
+ let use_unix = ref true
+ let os_type = ref "Unix"
++let android_target = ref false
+ let ccomp_type = ref "cc"
+ 
+ let log_file = ref ""
+@@ -408,6 +409,7 @@
+     "-use-pthread", arg_bool use_pthread, " whether to use pthread";
+     "-use-unix", arg_bool use_unix, " whether to build lwt.unix";
+     "-os-type", Arg.Set_string os_type, "<name> type of the target os";
++    "-android-target", arg_bool android_target, "<name> compiles for Android";
+     "-ccomp-type", Arg.Set_string ccomp_type, "<ccomp-type> C compiler type";
+   ] in
+   Arg.parse args ignore "check for external C libraries and available features\noptions are:";
+@@ -464,6 +466,7 @@
+ 
+   let test_pthread () =
+     let opt, lib =
++      if !android_target then ([], []) else
+       lib_flags "PTHREAD"
+         (fun () ->
+           match search_header "pthread.h" with
+@@ -527,15 +530,18 @@
+   let do_check = !os_type <> "Win32" in
+   test_feature ~do_check "eventfd" "HAVE_EVENTFD" (fun () -> test_code ([], []) eventfd_code);
+   test_feature ~do_check "fd passing" "HAVE_FD_PASSING" (fun () -> test_code ([], []) fd_passing_code);
+-  test_feature ~do_check "sched_getcpu" "HAVE_GETCPU" (fun () -> test_code ([], []) getcpu_code);
+-  test_feature ~do_check "affinity getting/setting" "HAVE_AFFINITY" (fun () -> test_code ([], []) affinity_code);
++  test_feature ~do_check:(do_check && not !android_target)
++    "sched_getcpu" "HAVE_GETCPU" (fun () -> test_code ([], []) getcpu_code);
++  test_feature ~do_check:(do_check && not !android_target)
++    "affinity getting/setting" "HAVE_AFFINITY" (fun () -> test_code ([], []) affinity_code);
+   test_feature ~do_check "credentials getting (Linux)" "HAVE_GET_CREDENTIALS_LINUX" (fun () -> test_code ([], []) (get_credentials_code "ucred"));
+   test_feature ~do_check "credentials getting (NetBSD)" "HAVE_GET_CREDENTIALS_NETBSD" (fun () -> test_code ([], []) (get_credentials_code "sockcred"));
+   test_feature ~do_check "credentials getting (OpenBSD)" "HAVE_GET_CREDENTIALS_OPENBSD" (fun () -> test_code ([], []) (get_credentials_code "sockpeercred"));
+   test_feature ~do_check "credentials getting (FreeBSD)" "HAVE_GET_CREDENTIALS_FREEBSD" (fun () -> test_code ([], []) (get_credentials_code "cmsgcred"));
+   test_feature ~do_check "credentials getting (getpeereid)" "HAVE_GETPEEREID" (fun () -> test_code ([], []) get_peereid_code);
+   test_feature ~do_check "fdatasync" "HAVE_FDATASYNC" (fun () -> test_code ([], []) fdatasync_code);
+-  test_feature ~do_check "netdb_reentrant" "HAVE_NETDB_REENTRANT" (fun () -> test_code ([], []) netdb_reentrant_code);
++  test_feature ~do_check:(do_check && not !android_target)
++    "netdb_reentrant" "HAVE_NETDB_REENTRANT" (fun () -> test_code ([], []) netdb_reentrant_code);
+ 
+   let get_cred_vars = [
+     "HAVE_GET_CREDENTIALS_LINUX";
+@@ -563,6 +569,11 @@
+     output_string config "//#define LWT_ON_WINDOWS\n";
+     output_string config_ml "#let windows=false\n"
+   end;
++  if !android_target then begin
++    output_string config_ml "#let android=true\n"
++  end else begin
++    output_string config_ml "#let android=false\n"
++  end;
+ 
+   fprintf config "#endif\n";
+ 
+diff -rN -u old-lwt.dev/_oasis new-lwt.dev/_oasis
+--- old-lwt.dev/_oasis	2013-01-17 14:32:51.671346552 +0100
++++ new-lwt.dev/_oasis	2013-01-17 14:32:51.727344988 +0100
+@@ -22,7 +22,7 @@
+ BuildTools: ocamlbuild
+ Plugins: DevFiles (0.3), META (0.3)
+ XDevFilesEnableMakefile: false
+-PostConfCommand: ocaml discover.ml -ocamlc $ocamlc -ext-obj $ext_obj -exec-name $default_executable_name -use-libev $libev -os-type $os_type -use-glib $glib -ccomp-type $ccomp_type -use-pthread $pthread -use-unix $unix
++PostConfCommand: ocaml discover.ml -ocamlc $ocamlc -ext-obj $ext_obj -exec-name $default_executable_name -use-libev $libev -os-type $os_type -use-glib $glib -ccomp-type $ccomp_type -use-pthread $pthread -use-unix $unix -android-target $android_target
+ PostDistCleanCommand: $rm src/unix/lwt_config.h src/unix/lwt_config.ml src/unix/lwt_unix_jobs_generated.ml src/unix/jobs-unix/*
+ 
+ Synopsis: Lightweight thread library for Objective Caml
+@@ -37,6 +37,10 @@
+ # | Flags                                                             |
+ # +-------------------------------------------------------------------+
+ 
++Flag android_target
++  Description: Compiles for Android
++  Default: false
++
+ Flag all
+   Description: build and install everything
+   Default: false
+@@ -67,7 +71,7 @@
+ 
+ Flag preemptive
+   Description: Preemptive threads support
+-  Default$: flag(unix)
++  Default$: flag(unix) && !flag(android_target)
+ 
+ Flag extra
+   Description: Asynchronous unix functions
+@@ -79,7 +83,7 @@
+ 
+ Flag libev
+   Description: Compile with libev support
+-  Default$: !os_type(Win32)
++  Default$: !os_type(Win32) && !flag(android_target)
+ 
+ Flag pthread
+   Description: Use pthread
+diff -rN -u old-lwt.dev/src/unix/gen_stubs.ml new-lwt.dev/src/unix/gen_stubs.ml
+--- old-lwt.dev/src/unix/gen_stubs.ml	2013-01-17 14:32:51.699345770 +0100
++++ new-lwt.dev/src/unix/gen_stubs.ml	2013-01-17 14:32:51.735344765 +0100
+@@ -247,7 +247,8 @@
+           check = Some "$(result) == (off_t)-1";
+           map64 = ["offset"; "result"];
+       };
+-  Job (simple_unit ["termios"; "unistd"] "tcdrain" [("fd", file_descr)]);
++  Job { (simple_unit ["termios"; "unistd"] "tcdrain" [("fd", file_descr)])
++        with exists_if = [(false, "__ANDROID__")] };
+   Job (simple_unit ["termios"; "unistd"] "tcflush" [("fd", file_descr); ("queue", flush_queue)]);
+   Job (simple_unit ["termios"; "unistd"] "tcflow" [("fd", file_descr); ("action", flow_action)]);
+   Job (simple_unit ["termios"; "unistd"] "tcsendbreak" [("fd", file_descr); ("duration", int)]);
+diff -rN -u old-lwt.dev/src/unix/lwt_unix.ml new-lwt.dev/src/unix/lwt_unix.ml
+--- old-lwt.dev/src/unix/lwt_unix.ml	2013-01-17 14:32:51.715345321 +0100
++++ new-lwt.dev/src/unix/lwt_unix.ml	2013-01-17 14:32:51.739344654 +0100
+@@ -1411,7 +1411,7 @@
+     gr_mem : string array
+   }
+ 
+-#if windows
++#if windows || android
+ 
+ let getlogin () =
+   return (Unix.getlogin ())
+@@ -1425,7 +1425,7 @@
+ 
+ #endif
+ 
+-#if windows
++#if windows || android
+ 
+ let getpwnam name =
+   return (Unix.getpwnam name)
+@@ -1439,7 +1439,7 @@
+ 
+ #endif
+ 
+-#if windows
++#if windows || android
+ 
+ let getgrnam name =
+   return (Unix.getgrnam name)
+@@ -1453,7 +1453,7 @@
+ 
+ #endif
+ 
+-#if windows
++#if windows || android
+ 
+ let getpwuid uid =
+   return (Unix.getpwuid uid)
+@@ -1467,7 +1467,7 @@
+ 
+ #endif
+ 
+-#if windows
++#if windows || android
+ 
+ let getgrgid gid =
+   return (Unix.getgrgid gid)
+@@ -2134,7 +2134,7 @@
+ 
+ #endif
+ 
+-#if windows
++#if windows || android
+ 
+ let tcdrain ch =
+   check_descriptor ch;
+@@ -2305,11 +2305,11 @@
+   | WNOHANG
+   | WUNTRACED
+ 
+-let has_wait4 = not Lwt_sys.windows
+-
+ type resource_usage = { ru_utime : float; ru_stime : float }
+ 
+-#if windows
++#if windows || android
++
++let has_wait4 = false
+ 
+ let stub_wait4 flags pid =
+   let pid, status = Unix.waitpid flags pid in
+@@ -2317,6 +2317,8 @@
+ 
+ #else
+ 
++let has_wait4 = true
++
+ external stub_wait4 : Unix.wait_flag list -> int -> int * Unix.process_status * resource_usage = "lwt_unix_wait4"
+ 
+ #endif
+@@ -2376,7 +2378,7 @@
+   try_lwt
+     return (stub_wait4 flags pid)
+ 
+-#if windows
++#if windows || android
+ 
+ let wait4 = _wait4
+ 
+diff -rN -u old-lwt.dev/src/unix/lwt_unix_unix.c new-lwt.dev/src/unix/lwt_unix_unix.c
+--- old-lwt.dev/src/unix/lwt_unix_unix.c	2013-01-17 14:32:51.715345321 +0100
++++ new-lwt.dev/src/unix/lwt_unix_unix.c	2013-01-17 14:32:51.739344654 +0100
+@@ -479,6 +479,8 @@
+ CAMLextern int caml_convert_signal_number (int);
+ CAMLextern int caml_rev_convert_signal_number (int);
+ 
++#if !defined(__ANDROID__)
++
+ #if !(defined(WIFEXITED) && defined(WEXITSTATUS) && defined(WIFSTOPPED) && \
+       defined(WSTOPSIG) && defined(WTERMSIG))
+ /* Assume old-style V7 status word */
+@@ -547,6 +549,8 @@
+   return Val_int(1);
+ }
+ 
++#endif
++
+ /* +-----------------------------------------------------------------+
+    | CPUs                                                            |
+    +-----------------------------------------------------------------+ */
+@@ -1500,6 +1504,8 @@
+    | JOB: getlogin                                                   |
+    +-----------------------------------------------------------------+ */
+ 
++#if !defined(__ANDROID__)
++
+ struct job_getlogin {
+   struct lwt_unix_job job;
+   char buffer[1024];
+@@ -1530,10 +1536,14 @@
+   return lwt_unix_alloc_job(&job->job);
+ }
+ 
++#endif
++
+ /* +-----------------------------------------------------------------+
+    | JOBs: get{pw,gr}{nam,uid}                                       |
+    +-----------------------------------------------------------------+ */
+ 
++#if !defined(__ANDROID__)
++
+ static value alloc_passwd_entry(struct passwd *entry)
+ {
+   value res;
+@@ -1543,7 +1553,7 @@
+   Begin_roots5 (name, passwd, gecos, dir, shell);
+     name = copy_string(entry->pw_name);
+     passwd = copy_string(entry->pw_passwd);
+-#ifndef __BEOS__
++#if !defined(__BEOS__)
+     gecos = copy_string(entry->pw_gecos);
+ #else
+     gecos = copy_string("");
+@@ -1629,6 +1639,8 @@
+ JOB_GET_ENTRY(LWT_UNIX_INIT_JOB(job, getpwuid, 0); job->uid = Int_val(uid), getpwuid, GETPW, passwd, uid, int uid, Nothing)
+ JOB_GET_ENTRY(LWT_UNIX_INIT_JOB(job, getgrgid, 0); job->gid = Int_val(gid), getgrgid, GETGR, group, gid, int gid, Nothing)
+ 
++#endif
++
+ /* +-----------------------------------------------------------------+
+    | JOB: gethostname                                                |
+    +-----------------------------------------------------------------+ */

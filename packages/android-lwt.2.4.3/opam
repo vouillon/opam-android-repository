@@ -1,0 +1,15 @@
+opam-version: "1"
+maintainer: "jerome.vouillon@pps.univ-paris-diderot.fr"
+patches: ["lwt.patch"]
+build: [
+  ["oasis" "setup"]
+  ["ocaml" "setup.ml" "-configure"
+      "--override" "ocamlfind"
+         "/home/jerome/.opam/4.00.1/bin/arm-linux-androideabi-ocamlfind"
+      "--override" "android_target" "true"
+      "--enable-ssl"]
+  ["ocaml" "setup.ml" "-build"]
+  ["ocaml" "setup.ml" "-install"]
+]
+remove: [["ocamlfind" "-toolchain" "android" "remove" "lwt"]]
+depends: ["oasis" "android-ocamlfind" "android-ssl"]
