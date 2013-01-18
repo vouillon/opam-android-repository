@@ -12,4 +12,4 @@ build: [
   ["ocaml" "setup.ml" "-install"]
 ]
 remove: [["ocamlfind" "-toolchain" "android" "remove" "lwt"]]
-depends: ["oasis" "android-ocamlfind" "android-ssl"]
+depends: ["oasis" { = "0.3.0-1"} "android-ocamlfind" "android-ssl"]
