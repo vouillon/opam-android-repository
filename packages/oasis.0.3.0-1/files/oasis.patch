@@ -10,15 +10,14 @@ diff -ur oasis-0.3.0-/INSTALL.txt oasis-0.3.0/INSTALL.txt
  * odn (>= 0.0.3) for library oasis
  * make for all, test main, test main_loader, test main_userconf,
    doc api-oasis, doc manual
-Seulement dans oasis-0.3.0: INSTALL.txt~
 diff -ur oasis-0.3.0-/src/plugins/ocamlbuild/MyOCamlbuildFindlib.ml oasis-0.3.0/src/plugins/ocamlbuild/MyOCamlbuildFindlib.ml
 --- oasis-0.3.0-/src/plugins/ocamlbuild/MyOCamlbuildFindlib.ml	2012-06-29 00:24:17.000000000 +0200
-+++ oasis-0.3.0/src/plugins/ocamlbuild/MyOCamlbuildFindlib.ml	2013-01-12 00:58:43.956137044 +0100
-@@ -66,7 +66,16 @@
- let find_syntaxes () = ["camlp4o"; "camlp4r"]
++++ oasis-0.3.0/src/plugins/ocamlbuild/MyOCamlbuildFindlib.ml	2013-01-19 20:32:07.870759391 +0100
+@@ -58,16 +58,25 @@
+     String.before s (String.index s ' ')
+   with Not_found -> s
  
- (* ocamlfind command *)
--let ocamlfind x = S[A"ocamlfind"; x]
++(* ocamlfind command *)
 +let env_filename = Pathname.basename BaseEnvLight.default_filename
 +let env = BaseEnvLight.load ~filename:env_filename ~allow_empty:true ()
 +
@@ -29,9 +28,21 @@ diff -ur oasis-0.3.0-/src/plugins/ocamlbuild/MyOCamlbuildFindlib.ml oasis-0.3.0/
 +    Printf.eprintf "W: Cannot get variable ocamlfind";
 +    "ocamlfind"
 +let ocamlfind x = S[Sh ocamlfind_prog; x]
++
+ (* this lists all supported packages *)
+ let find_packages () =
+-  List.map before_space (split_nl & run_and_read "ocamlfind list")
++  List.map before_space (split_nl & run_and_read (ocamlfind_prog ^ " list"))
  
+ (* this is supposed to list available syntaxes, but I don't know how to do it. *)
+ let find_syntaxes () = ["camlp4o"; "camlp4r"]
+ 
+-(* ocamlfind command *)
+-let ocamlfind x = S[A"ocamlfind"; x]
+-
  let dispatch =
    function
+     | Before_options ->
 @@ -78,7 +87,8 @@
          Options.ocamlopt   := ocamlfind & A"ocamlopt";
          Options.ocamldep   := ocamlfind & A"ocamldep";
