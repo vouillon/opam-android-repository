@@ -1,9 +1,11 @@
 #!/bin/sh -e
 
 PREFIX=$1
-ANDROID_NDK=$PREFIX/lib/android-ndk-linux
+
+ARCH=`uname | tr A-Z a-z`
+ANDROID_NDK=$PREFIX/lib/android-ndk
 EXEC_PREFIX=arm-linux-androideabi-
-TOOLCHAIN=${ANDROID_NDK}/toolchains/${EXEC_PREFIX}4.7/prebuilt/linux-x86/bin
+TOOLCHAIN=${ANDROID_NDK}/toolchains/${EXEC_PREFIX}4.7/prebuilt/$ARCH-x86/bin
 
 export CROSS_COMPILE=$TOOLCHAIN/$EXEC_PREFIX
 

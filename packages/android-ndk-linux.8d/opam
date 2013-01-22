@@ -2,4 +2,6 @@ opam-version: "1"
 maintainer: "jerome.vouillon@pps.univ-paris-diderot.fr"
 build: [
   ["cp" "-r" "." "%{lib}%/android-ndk-linux"]
+  ["ln" "-sf" "android-ndk-linux" "%{lib}%/android-ndk"]
 ]
+os: ["linux"]

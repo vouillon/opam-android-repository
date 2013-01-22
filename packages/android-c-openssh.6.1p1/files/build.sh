@@ -1,10 +1,12 @@
 #!/bin/sh -e
 
 PREFIX=$1
-ANDROID_NDK=$PREFIX/lib/android-ndk-linux
+
+ARCH=`uname | tr A-Z a-z`
+ANDROID_NDK=$PREFIX/lib/android-ndk
 EXEC_PREFIX=arm-linux-androideabi
-TOOLCHAIN=${ANDROID_NDK}/toolchains/${EXEC_PREFIX}-4.7/prebuilt/linux-x86/bin
-SYSROOT=$PREFIX/lib/android-ndk-linux/platforms/android-14/arch-arm
+TOOLCHAIN=${ANDROID_NDK}/toolchains/${EXEC_PREFIX}-4.7/prebuilt/$ARCH-x86/bin
+SYSROOT=${ANDROID_NDK}/platforms/android-14/arch-arm
 INCLUDES=$PREFIX/arm-linux-androideabi/include
 LIBS=$PREFIX/arm-linux-androideabi/lib
 

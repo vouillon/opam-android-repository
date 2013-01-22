@@ -1,9 +1,10 @@
 opam-version: "1"
 maintainer: "jerome.vouillon@pps.univ-paris-diderot.fr"
 build: [[
-  "make" "ANDROID_NDK=%{lib}%/android-ndk-linux" "OCAML_SRC=%{lib}%/ocaml-src"
+  "make" "ANDROID_NDK=%{lib}%/android-ndk" "OCAML_SRC=%{lib}%/ocaml-src"
          "ANDROID_PREFIX=%{prefix}%/arm-linux-androideabi"
          "ANDROID_BINDIR=%{bin}%"
 ]]
 remove: [[ "./remove.sh" "%{prefix}%" ]]
-depends: ["ocaml-src" {= "4.00.1"} "android-ndk-linux"]
+depends:
+  ["ocaml-src" {= "4.00.1"} ("android-ndk-linux" | "android-ndk-darwin")]

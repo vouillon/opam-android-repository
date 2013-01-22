@@ -10,5 +10,5 @@ FILES="\
 
 for f in $FILES; do
   echo Removing $PREFIX/$f...
-  rm -f "$PREFIX/$f"
+  rm -rf "$PREFIX/$f"
 done
