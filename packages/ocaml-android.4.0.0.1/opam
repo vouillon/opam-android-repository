@@ -6,4 +6,4 @@ build: [[
          "ANDROID_BINDIR=%{bin}%"
 ]]
 remove: [[ "./remove.sh" "%{prefix}%" ]]
-depends: ["ocaml-src" {>= "4.00.0"} "android-ndk-linux"]
+depends: ["ocaml-src" {= "4.00.1"} "android-ndk-linux"]
