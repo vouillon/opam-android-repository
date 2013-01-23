@@ -43,7 +43,10 @@ Ocamlfind can be invoked as either:
 The Android NDK is in `%{lib}%/android-ndk` where `%{prefix}%` is the
 directory under which OPAM normally puts libraries (typically,
 `~/.opam/4.00.1/lib/` for OCaml 4.00.1).  The C compiler is called
-with the right options when invoked through the OCaml compilers
+with the right options when invoked through the OCaml compilers, so
+this location only matters if you need to invoke the compiler
+directly. See the build script for package `android-c-openssh` for an
+example of how to do it.
 
 Android libraries and binaries are placed in directory
 `%{prefix}%/arm-linux-androideabi`, where `%{prefix}%` is the
