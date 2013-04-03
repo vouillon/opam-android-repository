@@ -11,7 +11,7 @@ Installation notes
 Use the following command to add this repository to the list of
 repositories used by OPAM:
 ```
-opam repo -add android https://github.com/vouillon/opam-android-repository.git
+opam repo add android https://github.com/vouillon/opam-android-repository.git
 ```
 
 The following command will list the available packages:
