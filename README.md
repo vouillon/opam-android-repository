@@ -21,9 +21,9 @@ opam list | grep android
 
 The Android NDK (Native Development Kit) is automatically downloaded.
 
-On a 64bit Debian or Ubuntu installation, you need to install
-package `gcc-multilib`, as we have to build 32 bit OCaml binaries
-when targeting 32 bit architectures.
+On a 64bit Debian or Ubuntu installation, you need to install package
+`gcc-multilib` and `lib32z1`, as we have to build 32 bit OCaml
+binaries when targeting 32 bit architectures.
 
 Directory structure
 -------------------
