@@ -12,5 +12,5 @@ export CROSS_COMPILE=$TOOLCHAIN/$EXEC_PREFIX
 ./Configure --prefix="$PREFIX/arm-linux-androideabi" android
 
 export ANDROID_DEV=${ANDROID_NDK}/platforms/android-14/arch-arm/usr
-make
-make install
+make all
+make install_sw
