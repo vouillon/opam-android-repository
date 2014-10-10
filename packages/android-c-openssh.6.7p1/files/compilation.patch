@@ -1,0 +1,45 @@
+--- config.h-	2014-10-10 11:14:28.716939609 +0200
++++ config.h	2014-10-10 11:14:53.300297058 +0200
+@@ -758,7 +758,7 @@
+ /* #undef HAVE_MAILLOCK_H */
+ 
+ /* Define to 1 if you have the `mblen' function. */
+-/* #undef HAVE_MBLEN */
++#define HAVE_MBLEN 1
+ 
+ /* Define to 1 if you have the `md5_crypt' function. */
+ /* #undef HAVE_MD5_CRYPT */
+--- openbsd-compat/Makefile-	2014-10-10 10:59:59.431664955 +0200
++++ openbsd-compat/Makefile	2014-10-10 11:00:03.671554204 +0200
+@@ -16,9 +16,9 @@
+ INSTALL=/usr/bin/install -c
+ LDFLAGS=-L. --sysroot /home/jerome/.opam/4.01.0/lib/android-ndk/platforms/android-14/arch-arm -I /home/jerome/.opam/4.01.0/arm-linux-androideabi/include -L /home/jerome/.opam/4.01.0/arm-linux-androideabi/lib -march=armv7-a -Wl,--fix-cortex-a8 -Wl,--no-warn-mismatch -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack -fstack-protector-all
+ 
+-OPENBSD=base64.o basename.o bcrypt_pbkdf.o bindresvport.o blowfish.o daemon.o dirname.o fmt_scaled.o getcwd.o getgrouplist.o getopt_long.o getrrsetbyname.o glob.o inet_aton.o inet_ntoa.o inet_ntop.o mktemp.o pwcache.o readpassphrase.o realpath.o rresvport.o setenv.o setproctitle.o sha2.o sigact.o strlcat.o strlcpy.o strmode.o strnlen.o strptime.o strsep.o strtonum.o strtoll.o strtoul.o strtoull.o timingsafe_bcmp.o vis.o blowfish.o bcrypt_pbkdf.o explicit_bzero.o
++OPENBSD=base64.o basename.o bcrypt_pbkdf.o bindresvport.o blowfish.o daemon.o dirname.o fmt_scaled.o getcwd.o getgrouplist.o getopt_long.o glob.o inet_aton.o inet_ntoa.o inet_ntop.o mktemp.o pwcache.o readpassphrase.o realpath.o rresvport.o setenv.o setproctitle.o sha2.o sigact.o strlcat.o strlcpy.o strmode.o strnlen.o strptime.o strsep.o strtonum.o strtoll.o strtoul.o strtoull.o timingsafe_bcmp.o vis.o blowfish.o bcrypt_pbkdf.o explicit_bzero.o
+ 
+-COMPAT=arc4random.o bsd-asprintf.o bsd-closefrom.o bsd-cray.o bsd-cygwin_util.o bsd-getpeereid.o getrrsetbyname-ldns.o bsd-misc.o bsd-nextstep.o bsd-openpty.o bsd-poll.o bsd-setres_id.o bsd-snprintf.o bsd-statvfs.o bsd-waitpid.o fake-rfc2553.o openssl-compat.o xmmap.o xcrypt.o kludge-fd_set.o
++COMPAT=arc4random.o bsd-asprintf.o bsd-closefrom.o bsd-cray.o bsd-cygwin_util.o bsd-getpeereid.o getrrsetbyname-ldns.o bsd-misc.o bsd-nextstep.o bsd-openpty.o bsd-poll.o bsd-setres_id.o bsd-snprintf.o bsd-waitpid.o fake-rfc2553.o openssl-compat.o xmmap.o xcrypt.o kludge-fd_set.o
+ 
+ PORTS=port-aix.o port-irix.o port-linux.o port-solaris.o port-tun.o port-uw.o
+ 
+--- ./dns.c-	2014-10-10 10:52:59.470636791 +0200
++++ ./dns.c	2014-10-10 10:53:34.981708880 +0200
+@@ -201,6 +201,8 @@
+ verify_host_key_dns(const char *hostname, struct sockaddr *address,
+     Key *hostkey, int *flags)
+ {
++return -1;
++#if 0
+ 	u_int counter;
+ 	int result;
+ 	struct rrsetinfo *fingerprints = NULL;
+@@ -303,6 +305,7 @@
+ 		debug("no host key fingerprint found in DNS");
+ 
+ 	return 0;
++#endif
+ }
+ 
+ /*
+

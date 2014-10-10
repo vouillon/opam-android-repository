@@ -1,0 +1,5 @@
+opam-version: "1"
+maintainer: "jerome.vouillon@pps.univ-paris-diderot.fr"
+build: [["./build.sh" "%{prefix}%"]]
+remove: [["./remove.sh" "%{prefix}%"]]
+depends: ["android-ndk-linux" { >= "10" } | "android-ndk-darwin" { >= "10" } ]

@@ -1,0 +1,64 @@
+--- misc.c.orig	2014-08-29 19:29:19.000000000 +0200
++++ misc.c	2014-10-10 11:09:26.788832074 +0200
+@@ -205,9 +205,10 @@
+ pwcopy(struct passwd *pw)
+ {
+ 	struct passwd *copy = xcalloc(1, sizeof(*copy));
++        char * home;
+ 
+ 	copy->pw_name = xstrdup(pw->pw_name);
+-	copy->pw_passwd = xstrdup(pw->pw_passwd);
++	copy->pw_passwd = pw->pw_passwd?xstrdup(pw->pw_passwd):"*";
+ #ifdef HAVE_STRUCT_PASSWD_PW_GECOS
+ 	copy->pw_gecos = xstrdup(pw->pw_gecos);
+ #endif
+@@ -222,7 +223,9 @@
+ #ifdef HAVE_STRUCT_PASSWD_PW_CLASS
+ 	copy->pw_class = xstrdup(pw->pw_class);
+ #endif
+-	copy->pw_dir = xstrdup(pw->pw_dir);
++        home = getenv ("HOME");
++        home = home?home:pw->pw_dir;
++	copy->pw_dir = xstrdup(home);
+ 	copy->pw_shell = xstrdup(pw->pw_shell);
+ 	return copy;
+ }
+@@ -523,6 +526,7 @@
+ 	char user[128], *ret;
+ 	struct passwd *pw;
+ 	u_int len, slash;
++        char * dir;
+ 
+ 	if (*filename != '~')
+ 		return (xstrdup(filename));
+@@ -537,12 +541,17 @@
+ 		user[slash] = '\0';
+ 		if ((pw = getpwnam(user)) == NULL)
+ 			fatal("tilde_expand_filename: No such user %s", user);
+-	} else if ((pw = getpwuid(uid)) == NULL)	/* ~/path */
+-		fatal("tilde_expand_filename: No such uid %ld", (long)uid);
++                dir = pw->pw_dir;
++	} else {
++                if ((pw = getpwuid(uid)) == NULL)	/* ~/path */
++                        fatal("tilde_expand_filename: No such uid %ld", (long)uid);
++                dir = getenv ("HOME");
++                dir = dir?dir:pw->pw_dir;
++        }
+ 
+ 	/* Make sure directory has a trailing '/' */
+-	len = strlen(pw->pw_dir);
+-	if (len == 0 || pw->pw_dir[len - 1] != '/')
++	len = strlen(dir);
++	if (len == 0 || dir[len - 1] != '/')
+ 		sep = "/";
+ 	else
+ 		sep = "";
+@@ -551,7 +560,7 @@
+ 	if (path != NULL)
+ 		filename = path + 1;
+ 
+-	if (xasprintf(&ret, "%s%s%s", pw->pw_dir, sep, filename) >= MAXPATHLEN)
++	if (xasprintf(&ret, "%s%s%s", dir, sep, filename) >= MAXPATHLEN)
+ 		fatal("tilde_expand_filename: Path too long");
+ 
+ 	return (ret);
