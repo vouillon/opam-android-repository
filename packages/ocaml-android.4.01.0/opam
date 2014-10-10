@@ -7,7 +7,7 @@ build: [[
 ]]
 remove: [[ "./remove.sh" "%{prefix}%" ]]
 depends:
-  ["ocaml-src" {= "4.01.0"}
+  ["ocaml-src" {>= "4.01.0"}
    ("android-ndk-linux" { >= "10" } | "android-ndk-darwin" { >= "10" } )]
 conflicts:
   ["android-ocamlfind" { < "1.5.3" }
